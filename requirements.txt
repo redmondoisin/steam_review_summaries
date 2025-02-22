@@ -1,0 +1,6 @@
+Flask>=2.0.0
+requests>=2.25.1
+beautifulsoup4>=4.9.3
+transformers>=4.0.0
+torch>=1.7.1
+pytest
