@@ -42,7 +42,6 @@ A shell script is provided to simplify the setup and running process.
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/redmondoisin/steam_review_summaries
-   cd review_summaries
    ```
 
 2. **Make the shell script executable (if not already):**
