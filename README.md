@@ -94,6 +94,3 @@ pytest --maxfail=1 --disable-warnings -q
 ## License
 
 This project is licensed under the MIT License.
-```
-
-Feel free to modify the repository URL, adjust instructions, or add any additional sections as needed.
