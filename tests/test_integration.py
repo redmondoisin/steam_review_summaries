@@ -1,6 +1,9 @@
 import pytest
 from typing import List, Dict
 from app import get_app_id_by_name, get_reviews, summarize_reviews
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 @pytest.mark.integration
 def test_integration_csgo() -> None:

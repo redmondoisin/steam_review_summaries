@@ -2,6 +2,11 @@ import re
 import json
 import pytest
 from typing import List, Dict, Any
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
 from app import (
     clean_text,
     get_app_id_by_name,
@@ -10,10 +15,8 @@ from app import (
     app
 )
 
-# --- Dummy Summarizer and Tokenizer for Testing ---
 
 def dummy_summarizer(text: str, max_length: int, min_length: int, do_sample: bool, truncation: bool) -> List[Dict[str, str]]:
-    # This dummy function always returns a constant summary.
     return [{"summary_text": "Dummy summary."}]
 
 class DummyTokenizer:
@@ -90,7 +93,6 @@ def test_get_reviews(monkeypatch: pytest.MonkeyPatch) -> None:
 # --- Tests for Summarization Functionality ---
 
 def test_summarize_reviews_simple(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Use our simple dummy summarizer that always returns the same summary.
     monkeypatch.setattr("app.pipeline", lambda task, model: dummy_summarizer)
     monkeypatch.setattr("app.AutoTokenizer.from_pretrained", lambda model: DummyTokenizer())
     sample_reviews: List[Dict[str, str]] = [{"review": "This game is awesome!"}, {"review": "Loved it."}]
@@ -98,8 +100,7 @@ def test_summarize_reviews_simple(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Dummy summary." in summary
 
 def test_summarize_reviews_long_text(monkeypatch: pytest.MonkeyPatch) -> None:
-    # This test creates a long review text that forces the summarizer to split input into multiple chunks.
-    # We'll use a dummy tokenizer with a low max length and a dummy summarizer that counts calls.
+    # Creates a long review text that forces the summarizer to split input into multiple chunks.
     dummy_summarizer_fn, call_count = dummy_summarizer_counter_factory()
     monkeypatch.setattr("app.pipeline", lambda task, model: dummy_summarizer_fn)
     monkeypatch.setattr("app.AutoTokenizer.from_pretrained", lambda model: DummyTokenizer())
@@ -139,3 +140,20 @@ def test_index_post_success(monkeypatch: pytest.MonkeyPatch, client: Any) -> Non
     monkeypatch.setattr("app.summarize_reviews", lambda reviews, max_length=150, min_length=50: "Dummy summary of reviews.")
     response = client.post("/", data={"game_name": "Dummy Game"})
     assert b"Dummy summary of reviews." in response.data
+
+@pytest.fixture
+def client():
+    app.config["TESTING"] = True
+    with app.test_client() as client:
+        yield client
+
+def test_style_serving(client):
+    """
+    This test checks if style.css is properly served by Flask under /static/style.css.
+    If the test fails with a 404, it likely means the file isn't in the correct location
+    or the static route isn't set up correctly.
+    """
+    response = client.get("/static/style.css")
+    assert response.status_code == 200, "Expected 200 (OK) status code for style.css"
+    # Check if some snippet of CSS is present (e.g. 'body' selector)
+    assert b'body' in response.data, "Expected the CSS file to contain a 'body' selector"
